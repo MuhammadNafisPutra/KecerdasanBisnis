@@ -1,0 +1,22 @@
+# Rahasia
+.env
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+
+# Hasil pipeline (dibuat ulang saat pipeline berjalan)
+data_lake/raw/*
+data_lake/curated/*
+!data_lake/raw/.gitkeep
+!data_lake/curated/.gitkeep
+logs/*
+!logs/.gitkeep
+backups/
+
+# Editor
+.vscode/
+.idea/

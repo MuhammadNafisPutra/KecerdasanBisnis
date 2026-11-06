@@ -1,0 +1,7 @@
+# Untuk menjalankan ETL dan tes di luar Docker (VS Code)
+pandas>=2.2
+pyarrow>=15
+psycopg2-binary>=2.9
+requests>=2.31
+python-dotenv>=1.0
+pytest>=8

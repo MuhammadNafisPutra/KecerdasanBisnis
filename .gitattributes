@@ -1,0 +1,4 @@
+# Skrip shell harus memakai akhir baris Linux (LF) agar bisa dijalankan di container,
+# walaupun repo di-clone di Windows.
+*.sh  text eol=lf
+*.sql text eol=lf
