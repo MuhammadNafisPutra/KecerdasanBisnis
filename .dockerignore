@@ -1,0 +1,9 @@
+.git
+.env
+data_lake
+data/uji_skala
+logs
+__pycache__
+*.pyc
+tests
+.pytest_cache

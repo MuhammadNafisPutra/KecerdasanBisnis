@@ -99,5 +99,23 @@ services:
       airflow-init:
         condition: service_completed_successfully
 
+  dashboard:
+    build:
+      context: .
+      dockerfile: dashboard/Dockerfile
+    image: fitzone-dashboard:1.0
+    container_name: fitzone_dashboard
+    env_file: .env
+    environment:
+      DW_HOST: postgres
+      DW_PORT: 5432
+    ports:
+      - "8501:8501"
+    restart: unless-stopped
+    mem_limit: 512m
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   pgdata:

@@ -201,3 +201,25 @@ powershell -ExecutionPolicy Bypass -File scripts\backup_dw.ps1
 - Data internal: ekspor CSV kebiasaan latihan member (973 baris, 15 kolom).
 - Data eksternal: [WHO Global Health Observatory OData API](https://www.who.int/data/gho/info/gho-odata-api) —
   indikator `NCD_BMI_30A`, `NCD_BMI_25A`, `NCD_BMI_MEAN`, `NCD_PAA` untuk semua negara.
+
+## Dashboard (Streamlit)
+
+Dashboard membaca **hanya data mart** (`dw.mart_*`, `etl_audit.v_ringkasan_etl`, `v_durasi_tahap`) memakai role
+baca-saja `dashboard_ro`, sehingga tidak ada akses ke tabel mentah atau staging.
+
+| Halaman | Isi |
+|---|---|
+| Ringkasan Eksekutif | KPI (jumlah member, lemak tubuh, kalori, frekuensi, % BMI ≥ 30) dan sebaran member |
+| Retensi & Pemula | Keteraturan latihan (≥ 3x/minggu) per level, menit latihan per minggu vs batas WHO 150 |
+| Program & Pemasaran | Kalori per jam, lama sesi, lemak tubuh dan peminat per jenis latihan |
+| Benchmark WHO | Member vs Indonesia (WHO), peringkat Indonesia di antara negara |
+| Prediksi Lemak Tubuh (ML) | Baseline vs model lain, model terpilih, aktual vs prediksi, galat, fitur berpengaruh |
+| Kualitas Data & ETL | Riwayat proses, status, baris ditolak, durasi per tahap |
+
+Filter: jenis kelamin, jenis latihan, kelompok usia, level pengalaman, kategori BMI. Cache 1 jam
+(tombol "Muat ulang data" untuk memaksa muat ulang).
+
+```bash
+docker compose up -d --build dashboard
+# buka http://localhost:8501
+```
