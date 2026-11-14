@@ -3,7 +3,8 @@
     python -m etl.run_pipeline init-db          # buat schema, tabel, seed, mart
     python -m etl.run_pipeline member           # CSV -> Data Lake -> staging -> DWH
     python -m etl.run_pipeline who              # WHO API -> Data Lake -> staging -> DWH
-    python -m etl.run_pipeline all
+    python -m etl.run_pipeline ml               # latih ulang model prediksi lemak tubuh dari DWH
+    python -m etl.run_pipeline all              # member, who, lalu ml
     python -m etl.run_pipeline replay member 12 # proses ulang batch 12 dari raw zone (tanpa ambil ulang)
     python -m etl.run_pipeline status           # 10 batch terakhir
 
@@ -14,7 +15,7 @@ import logging
 import sys
 import time
 
-from etl import config, db, ingest, member, notify, who
+from etl import config, db, ingest, member, ml, notify, who
 
 log = logging.getLogger("fitzone.run")
 
@@ -49,7 +50,7 @@ def run_with_retry(fn, *args, retries=None, delay=None):
 
 
 def init_db():
-    files = sorted(p for p in config.SQL_DIR.glob("0[1-8]_*.sql"))
+    files = sorted(p for p in config.SQL_DIR.glob("0[1-9]_*.sql"))
     with db.transaction() as conn, conn.cursor() as cur:
         for f in files:
             log.info("Menjalankan %s", f.name)
@@ -80,6 +81,22 @@ def run_source(source: str, retries=None, delay=None) -> bool:
         return False
 
 
+def run_ml() -> bool:
+    try:
+        hasil = ml.train_model()
+    except Exception as exc:
+        notify.send_alert("Training model GAGAL", f"{type(exc).__name__}: {exc}")
+        log.error("Training model GAGAL: %s", exc)
+        return False
+    print(f"\n{'model':<18} {'peran':<9} {'CV MAE':>7} {'uji MAE':>8} {'uji RMSE':>9} {'uji R2':>7} {'latih s':>8}")
+    for r in hasil["results"]:
+        tanda = "  <- champion" if r["is_champion"] else ""
+        print(f"{r['model_name']:<18} {r['model_role']:<9} {r['cv_mae_mean']:>7.3f} {r['test_mae']:>8.3f} "
+              f"{r['test_rmse']:>9.3f} {r['test_r2']:>7.3f} {r['train_sec']:>8.2f}{tanda}")
+    print(f"Champion MAE {hasil['mae_improvement_pct']:.1f}% lebih baik dari baseline (batch {hasil['batch_id']})")
+    return True
+
+
 def show_status():
     conn = db.connect()
     try:
@@ -99,7 +116,7 @@ def show_status():
 def main(argv=None):
     setup_logging()
     p = argparse.ArgumentParser(description="Pipeline ETL PT FitZone Nusantara")
-    p.add_argument("command", choices=["init-db", "member", "who", "all", "replay", "status"])
+    p.add_argument("command", choices=["init-db", "member", "who", "ml", "all", "replay", "status"])
     p.add_argument("source", nargs="?", choices=["member", "who"])
     p.add_argument("batch_id", nargs="?", type=int)
     p.add_argument("--retries", type=int, default=None)
@@ -117,8 +134,12 @@ def main(argv=None):
             p.error("replay butuh sumber dan batch_id, contoh: replay member 12")
         process(a.source, a.batch_id)
         return 0
+    if a.command == "ml":
+        return 0 if run_ml() else 1
     sources = ["member", "who"] if a.command == "all" else [a.command]
     ok = all([run_source(s, a.retries, a.retry_delay) for s in sources])
+    if a.command == "all":
+        ok = run_ml() and ok
     return 0 if ok else 1
 
 

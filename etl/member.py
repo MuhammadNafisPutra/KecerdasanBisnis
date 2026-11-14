@@ -157,6 +157,7 @@ def transform_member_df(stg: pd.DataFrame) -> tuple[pd.DataFrame, list[dict], di
 
 
 # ---------------------------------------------------------------- tahap pipeline
+@audit.timed("stage")
 def stage_member(batch_id: int) -> int:
     """Raw zone -> stg.stg_gym_members (dikosongkan dulu, lalu diisi ulang)."""
     try:
@@ -178,6 +179,7 @@ def stage_member(batch_id: int) -> int:
         raise
 
 
+@audit.timed("transform")
 def transform_member(batch_id: int) -> dict:
     """Staging -> aturan transform -> quality gate -> curated zone (parquet)."""
     try:
@@ -213,6 +215,7 @@ def _lookup(cur, sql: str) -> dict:
     return dict(cur.fetchall())
 
 
+@audit.timed("load")
 def load_member(batch_id: int) -> int:
     """Curated -> dim_member + 2 tabel fakta dalam SATU transaksi, rekonsiliasi, refresh mart."""
     try:

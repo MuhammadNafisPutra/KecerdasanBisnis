@@ -18,4 +18,7 @@ done
 
 echo ">> Memberi hak akses baca"
 psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f /sql/08_grants.sql
+
+echo ">> Membuat tabel dan view Machine Learning"
+psql -v ON_ERROR_STOP=1 -U "$DW_USER" -d "$POSTGRES_DB" -f /sql/09_ml.sql
 echo ">> Selesai"

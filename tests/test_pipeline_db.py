@@ -151,3 +151,65 @@ def test_who_api_gagal_dicatat(monkeypatch):
         run_pipeline.run_with_retry(ingest.ingest_who, retries=2, delay=0)
     statuses = [r for r in [audit.get_batch(i)["status"] for i in (1, 2, 3)]]
     assert statuses == ["FAILED", "FAILED", "FAILED"]   # 1 percobaan + 2 retry, semuanya tercatat
+
+
+# ---------------------------------------------------------------- Machine Learning
+
+def test_ml_training_menulis_hasil_ke_dwh(monkeypatch):
+    from etl import ml
+    monkeypatch.setattr(config, "MODEL_DIR", config.CURATED_DIR.parent / "models")
+    monkeypatch.setattr(config, "ML_MIN_R2", -10.0)   # data uji acak: target tidak bisa diprediksi
+    tulis_csv(make_member_df(300))
+    jalankan_member()
+    hasil = ml.train_model()
+    assert audit.get_batch(hasil["batch_id"])["status"] == "SUCCESS"
+    assert hitung("SELECT COUNT(*) FROM dw.ml_model_run") == 3
+    assert hitung("SELECT COUNT(*) FROM dw.ml_model_run WHERE is_champion") == 1
+    assert hitung("SELECT COUNT(*) FROM dw.ml_prediction") == 300
+    assert hitung("SELECT COUNT(*) FROM dw.mart_ml_prediksi_lemak") == 300
+    assert hitung("SELECT COUNT(*) FROM dw.mart_ml_evaluasi") == 3
+    path = hitung("SELECT model_path FROM dw.ml_model_run WHERE is_champion")
+    assert path and os.path.exists(path)
+
+
+def test_ml_gerbang_kualitas_tidak_menulis(monkeypatch):
+    from etl import ml
+    monkeypatch.setattr(config, "MODEL_DIR", config.CURATED_DIR.parent / "models")
+    monkeypatch.setattr(config, "ML_MIN_R2", 0.99)
+    tulis_csv(make_member_df(300))
+    jalankan_member()
+    sebelum = hitung("SELECT COUNT(*) FROM dw.ml_model_run")
+    with pytest.raises(ml.ModelQualityError):
+        ml.train_model()
+    assert hitung("SELECT COUNT(*) FROM dw.ml_model_run") == sebelum
+    assert hitung("SELECT status FROM etl_audit.etl_log WHERE source_name = 'ml_fat_model' "
+                  "ORDER BY batch_id DESC LIMIT 1") == "FAILED"
+
+
+def test_durasi_per_tahap_tercatat():
+    tulis_csv(make_member_df(200))
+    b = jalankan_member()
+    conn = db.connect()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT stage, status, rows_processed FROM etl_audit.etl_stage_log "
+                        "WHERE batch_id = %s ORDER BY stage_log_id", (b,))
+            rows = cur.fetchall()
+    finally:
+        conn.close()
+    assert [r[0] for r in rows] == ["ingest", "stage", "transform", "load"]
+    assert all(r[1] == "SUCCESS" for r in rows)
+    assert rows[0][2] == 200
+    assert hitung(f"SELECT total_sec > 0 FROM etl_audit.v_durasi_tahap WHERE batch_id = {b}")
+
+
+def test_durasi_tahap_gagal_tetap_tercatat():
+    df = make_member_df(100)
+    df.loc[:20, "Age"] = "abc"                      # 21% ditolak -> quality gate
+    tulis_csv(df)
+    b = ingest.ingest_member()
+    member.stage_member(b)
+    with pytest.raises(member.QualityGateError):
+        member.transform_member(b)
+    assert hitung(f"SELECT status FROM etl_audit.etl_stage_log WHERE batch_id = {b} "
+                  "AND stage = 'transform'") == "FAILED"

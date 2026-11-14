@@ -6,10 +6,14 @@ transaksi load dibatalkan (rollback).
 import json
 import logging
 import math
+import sys
+import time
+from contextlib import contextmanager
+from datetime import datetime, timezone
 
 import psycopg2.extras
 
-from etl import db
+from etl import config, db
 
 log = logging.getLogger("fitzone.audit")
 
@@ -112,3 +116,89 @@ def write_rejects(batch_id: int, source_name: str, rejects: list[dict]):
     finally:
         conn.close()
     log.warning("Batch %s: %d baris ditolak dicatat di etl_reject", batch_id, len(rows))
+
+
+# ---------------------------------------------------------------- durasi per tahap
+
+_stage_log_ready = False
+
+
+def _ensure_stage_log():
+    """Database lama (dibuat sebelum tabel etl_stage_log ada) diperbarui otomatis sekali per proses."""
+    global _stage_log_ready
+    if _stage_log_ready:
+        return
+    conn = db.connect(autocommit=True)
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT to_regclass('etl_audit.v_durasi_tahap')")
+            if cur.fetchone()[0] is None:
+                cur.execute((config.SQL_DIR / "02_audit.sql").read_text(encoding="utf-8"))
+    finally:
+        conn.close()
+    _stage_log_ready = True
+
+
+def peak_mem_mb() -> float | None:
+    """Puncak memori (RSS) proses ini dalam MB. Hanya tersedia di Linux/Mac (container Airflow)."""
+    try:
+        import resource
+    except ImportError:          # Windows
+        return None
+    peak = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    return round(peak / 1024 / (1024 if sys.platform == "darwin" else 1), 1)
+
+
+@contextmanager
+def stage_timer(batch_id: int, stage: str):
+    """Ukur lama satu tahap dan simpan ke etl_stage_log, juga bila tahap gagal.
+
+        with audit.stage_timer(batch_id, "load") as t:
+            ...
+            t["rows"] = jumlah_baris
+    """
+    info = {"rows": None}
+    started = datetime.now(timezone.utc)
+    t0 = time.perf_counter()
+    status = "SUCCESS"
+    try:
+        yield info
+    except BaseException as exc:
+        status = "SKIPPED" if type(exc).__name__ == "SkipBatch" else "FAILED"
+        raise
+    finally:
+        duration = time.perf_counter() - t0
+        try:
+            _ensure_stage_log()
+            conn = db.connect(autocommit=True)
+            try:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        "INSERT INTO etl_audit.etl_stage_log (batch_id, stage, status, rows_processed, "
+                        "started_at, finished_at, duration_sec, peak_mem_mb) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)",
+                        (batch_id, stage, status, info["rows"], started, datetime.now(timezone.utc),
+                         round(duration, 3), peak_mem_mb()))
+            finally:
+                conn.close()
+        except Exception as exc:  # pencatatan durasi tidak boleh menggagalkan pipeline
+            log.warning("Durasi tahap %s batch %s tidak tercatat: %s", stage, batch_id, exc)
+        log.info("Batch %s tahap %s: %s dalam %.2f detik", batch_id, stage, status, duration)
+
+
+def timed(stage: str):
+    """Dekorator untuk fungsi tahap dengan argumen pertama batch_id.
+    Jumlah baris diambil dari nilai kembali (int, atau dict berisi rows_read)."""
+    def deco(fn):
+        import functools
+
+        @functools.wraps(fn)
+        def wrapper(batch_id, *args, **kwargs):
+            with stage_timer(batch_id, stage) as t:
+                result = fn(batch_id, *args, **kwargs)
+                if isinstance(result, int):
+                    t["rows"] = result
+                elif isinstance(result, dict):
+                    t["rows"] = result.get("rows_read")
+                return result
+        return wrapper
+    return deco

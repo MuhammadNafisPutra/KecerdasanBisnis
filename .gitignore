@@ -13,6 +13,9 @@ data_lake/raw/*
 data_lake/curated/*
 !data_lake/raw/.gitkeep
 !data_lake/curated/.gitkeep
+data_lake/models/*
+!data_lake/models/.gitkeep
+data_lake/_uji_skala/
 logs/*
 !logs/.gitkeep
 backups/

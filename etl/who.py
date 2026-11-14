@@ -59,6 +59,7 @@ def parse_raw_who(bdir) -> tuple[pd.DataFrame, pd.DataFrame, dict]:
     return df, countries, stats
 
 
+@audit.timed("stage")
 def stage_who(batch_id: int) -> int:
     try:
         bdir = lake.find_raw_batch(config.SRC_WHO, batch_id)
@@ -144,6 +145,7 @@ def transform_who_df(stg: pd.DataFrame, units: dict) -> tuple[pd.DataFrame, list
     return clean, rejects, stats
 
 
+@audit.timed("transform")
 def transform_who(batch_id: int) -> dict:
     try:
         stg = db.read_df(f"SELECT {', '.join(STG_COLS)} FROM stg.stg_who_gho WHERE load_batch_id = %(b)s",
@@ -179,6 +181,7 @@ def transform_who(batch_id: int) -> dict:
         raise
 
 
+@audit.timed("load")
 def load_who(batch_id: int) -> int:
     """Upsert: tahun baru ditambah, tahun lama diperbarui bila WHO merevisi data."""
     try:

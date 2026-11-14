@@ -50,6 +50,17 @@ RETRY_DELAY_SEC = int(_env("RETRY_DELAY_SEC", "300"))           # 5 menit
 # Nama sumber (dipakai di etl_log dan Data Lake)
 SRC_MEMBER = "gym_csv"
 SRC_WHO = "who_gho_api"
+SRC_ML = "ml_fat_model"
+
+# Machine Learning: prediksi persentase lemak tubuh
+MODEL_DIR = DATA_LAKE_DIR / "models"
+ML_TEST_SIZE = float(_env("ML_TEST_SIZE", "0.2"))        # 20% data uji (hold-out)
+ML_CV_FOLDS = int(_env("ML_CV_FOLDS", "5"))              # validasi silang 5 lipat
+ML_RANDOM_STATE = int(_env("ML_RANDOM_STATE", "42"))
+ML_N_JOBS = int(_env("ML_N_JOBS", "2"))                  # inti CPU untuk Random Forest (hemat RAM)
+ML_MIN_ROWS = int(_env("ML_MIN_ROWS", "100"))            # data terlalu sedikit -> batch FAILED
+ML_MIN_R2 = float(_env("ML_MIN_R2", "0.3"))              # gerbang kualitas model champion
+ML_MAX_TRAIN_ROWS = int(_env("ML_MAX_TRAIN_ROWS", "50000"))  # data lebih besar -> latih pada sampel
 
 # Notifikasi email (opsional)
 SMTP_HOST = _env("SMTP_HOST")

@@ -24,6 +24,12 @@ class SkipBatch(Exception):
 # ---------------------------------------------------------------- data member (CSV)
 def ingest_member() -> int:
     batch_id = audit.start_batch(config.SRC_MEMBER, "ingest")
+    with audit.stage_timer(batch_id, "ingest") as t:
+        t["rows"] = _ingest_member(batch_id)
+    return batch_id
+
+
+def _ingest_member(batch_id: int) -> int:
     try:
         src = config.SOURCE_DIR / config.MEMBER_FILE
         if not src.exists():
@@ -59,7 +65,7 @@ def ingest_member() -> int:
         audit.update_batch(batch_id, stage="ingest", source_checksum=checksum,
                            raw_path=str(bdir), rows_read=len(df))
         log.info("Batch %s: %d baris member disimpan ke raw zone %s", batch_id, len(df), bdir)
-        return batch_id
+        return len(df)
     except SkipBatch:
         raise
     except Exception as exc:
@@ -84,6 +90,12 @@ def _country_filter() -> dict | None:
 
 def ingest_who() -> int:
     batch_id = audit.start_batch(config.SRC_WHO, "ingest")
+    with audit.stage_timer(batch_id, "ingest") as t:
+        t["rows"] = _ingest_who(batch_id)
+    return batch_id
+
+
+def _ingest_who(batch_id: int) -> int:
     try:
         bdir = lake.raw_batch_dir(config.SRC_WHO, batch_id)
         counts, digests = {}, []
@@ -119,7 +131,7 @@ def ingest_who() -> int:
         audit.update_batch(batch_id, stage="ingest", source_checksum=checksum, raw_path=str(bdir),
                            rows_read=sum(counts.values()),
                            notes=f"record per indikator: {counts}" + (f"; {note}" if note else ""))
-        return batch_id
+        return sum(counts.values())
     except Exception as exc:
         audit.fail_batch(batch_id, "ingest", exc)
         raise

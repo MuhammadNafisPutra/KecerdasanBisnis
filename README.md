@@ -25,15 +25,16 @@ PostgreSQL, diorkestrasi dengan Apache Airflow.
 | Staging | schema `stg` | Salinan raw per batch, semua kolom teks |
 | Curated zone | `data_lake/curated/<entitas>/batch_id=<n>/data.parquet` | Data bersih setelah transform |
 | Data Warehouse | schema `dw` | 7 dimensi, 3 fakta (star schema) |
-| Data Mart | `dw.mart_*` | Retensi & pemula, program & pemasaran, benchmark WHO, WHO per negara |
+| Data Mart | `dw.mart_*` | Retensi & pemula, program & pemasaran, benchmark WHO, WHO per negara, evaluasi & prediksi ML |
+| Model ML | `data_lake/models/fat_percentage/batch_id=<n>/` | File model champion (`model.joblib`) + `metrics.json` |
 | Audit | schema `etl_audit` | Log batch, baris ditolak, ringkasan ETL |
 
 ## Struktur folder
 
 ```
-dags/        DAG Airflow (member harian 02:00, WHO bulanan tgl 1 03:00)
-etl/         kode pipeline: ingest, member, who, audit, lake, notify, run_pipeline
-sql/         DDL: peran, schema, audit, staging, dimensi, fakta, seed, mart, hak akses
+dags/        DAG Airflow (member harian 02:00 + training model, WHO bulanan tgl 1 03:00)
+etl/         kode pipeline: ingest, member, who, ml, audit, lake, notify, run_pipeline
+sql/         DDL: peran, schema, audit, staging, dimensi, fakta, seed, mart, hak akses, tabel ML
 docker/      skrip inisialisasi PostgreSQL
 data/source/ letakkan file CSV member di sini (tidak di-upload ke GitHub bila rahasia)
 data_lake/   raw dan curated zone (dibuat oleh pipeline)
@@ -89,6 +90,7 @@ pip install -r requirements.txt
 
 python -m etl.run_pipeline member          # CSV -> Data Lake -> DWH
 python -m etl.run_pipeline who             # WHO API -> Data Lake -> DWH
+python -m etl.run_pipeline ml              # latih ulang model prediksi lemak tubuh
 python -m etl.run_pipeline status          # 10 batch terakhir
 python -m etl.run_pipeline replay member 5 # proses ulang batch 5 dari raw zone
 python scripts\cek_who_api.py              # cek jumlah record WHO per indikator
@@ -117,6 +119,53 @@ SELECT COUNT(*) AS baris, COUNT(DISTINCT country_key) AS negara FROM dw.fact_who
 SELECT * FROM dw.mart_benchmark_who ORDER BY who_code, gender;
 ```
 
+## Machine Learning: prediksi persentase lemak tubuh
+
+Task `train_model` berjalan otomatis di DAG `fitzone_member_daily` setelah `load`
+(bisa juga `python -m etl.run_pipeline ml`).
+
+| Langkah | Isi |
+|---|---|
+| Data latih | Star schema batch member terakhir (sudah lolos aturan ETL), bukan CSV mentah |
+| Fitur | umur, tinggi, berat, level pengalaman, durasi sesi, frekuensi/minggu, kalori, air, BPM maks/rata-rata/istirahat, gender, jenis latihan (BMI tidak dipakai) |
+| Pembagian | 80% latih / 20% uji, validasi silang 5 lipat pada data latih |
+| Model | Baseline **Linear Regression**; kandidat **Random Forest** dan **Gradient Boosting** |
+| Champion | MAE validasi silang terkecil |
+| Gerbang kualitas | R² uji champion ≥ `ML_MIN_R2` (bawaan 0,3); bila gagal, hasil lama tetap dipakai |
+| Output | `dw.ml_model_run` (metrik semua model), `dw.ml_prediction` (prediksi tiap member), view `dw.mart_ml_evaluasi` dan `dw.mart_ml_prediksi_lemak` |
+
+```sql
+SELECT model_name, is_champion, test_mae, test_rmse, test_r2, mae_lebih_baik_pct FROM dw.mart_ml_evaluasi;
+SELECT status_prediksi, COUNT(*) FROM dw.mart_ml_prediksi_lemak GROUP BY 1;
+```
+
+Database lama tidak perlu dibuat ulang: tabel dan view ML dibuat otomatis saat training pertama.
+
+## Evaluasi performa
+
+**Durasi per tahap** dicatat otomatis setiap batch di `etl_audit.etl_stage_log`
+(ingest, stage, transform, load, ml_load_data, ml_train, ml_write), juga bila tahap gagal.
+
+```sql
+SELECT * FROM etl_audit.v_durasi_tahap ORDER BY batch_id DESC;
+```
+
+**Uji skala** 1x / 10x / 100x / 1000x memakai database terpisah agar data demo tidak berubah:
+
+```powershell
+# sekali saja: buat database uji
+docker compose exec postgres createdb -U db_admin -O etl_user fitzone_bench
+
+# jalankan (di container agar memori bisa diukur); hasil di data\uji_skala\
+docker compose exec airflow-scheduler python -m etl.uji_skala
+docker compose exec airflow-scheduler python -m etl.uji_skala --skala 1 10 100 --tanpa-ml
+```
+
+Data 10x ke atas adalah salinan data asli dengan variasi kecil (data sintetis untuk uji beban).
+Akurasi model hanya dinilai pada data asli; pada data salinan terjadi kebocoran latih-uji.
+Bila data lebih besar dari `ML_MAX_TRAIN_ROWS` (bawaan 50.000), model dilatih pada sampel acak
+dan prediksi tetap dibuat untuk semua member.
+
 ## Penanganan kegagalan
 
 | Kejadian | Penanganan |
@@ -127,12 +176,13 @@ SELECT * FROM dw.mart_benchmark_who ORDER BY who_code, gender;
 | Baris ditolak > 5% | Quality gate menghentikan batch sebelum load, baris dicatat di `etl_reject` |
 | Error saat load / rekonsiliasi tidak cocok | Rollback satu transaksi, DWH tetap berisi batch valid terakhir |
 | Pemulihan | `replay` memproses ulang dari raw/curated zone tanpa mengambil ulang sumber |
+| Training model gagal / R² di bawah batas | Batch `ml_fat_model` FAILED, data member tetap termuat, prediksi lama tetap dipakai |
 | Notifikasi | Email lewat SMTP bila diisi di `.env`; selalu tercatat di log Airflow |
 
 ## Pengujian
 
 ```powershell
-pytest -q                                   # uji aturan transform (tanpa database)
+pytest -q                                   # uji aturan transform dan modul ML (tanpa database)
 
 # Uji pipeline ke database KHUSUS UJI (tabel akan dikosongkan!)
 $env:FITZONE_TEST_DB="1"; pytest -q tests\test_pipeline_db.py
