@@ -345,3 +345,22 @@ else:  # Kualitas Data & ETL
         fig.update_layout(barmode="stack", legend=dict(orientation="h", y=-0.3))
         _rapikan(fig, "Durasi per tahap per proses", "", "Detik", tinggi=380)
         tampil(fig)
+    st.subheader("Backup harian dan uji restore")
+    try:
+        bk = db.query("SELECT folder, started_at, status, db_dump_mb, raw_archive_mb, n_tables, total_rows, "
+                      "restore_status, restore_sec, deleted_old, notes FROM etl_audit.backup_log "
+                      "ORDER BY started_at DESC LIMIT 20")
+    except Exception:
+        bk = pd.DataFrame()
+    if bk.empty:
+        st.info("Belum ada riwayat backup. Jalankan DAG fitzone_backup_daily di Airflow.")
+    else:
+        t = bk.iloc[0]
+        k = st.columns(4)
+        k[0].metric("Backup terakhir", str(t.started_at)[:16])
+        k[1].metric("Status", t.status)
+        nilai = lambda v, d=0: d if pd.isna(v) else v
+        k[2].metric("Uji restore", nilai(t.restore_status, "-"), f"{float(nilai(t.restore_sec)):.1f} detik")
+        k[3].metric("Ukuran (DB + raw)",
+                    f"{float(nilai(t.db_dump_mb)) + float(nilai(t.raw_archive_mb)):.1f} MB")
+        st.dataframe(bk, hide_index=True)

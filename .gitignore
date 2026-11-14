@@ -18,7 +18,8 @@ data_lake/models/*
 data_lake/_uji_skala/
 logs/*
 !logs/.gitkeep
-backups/
+backups/*
+!backups/.gitkeep
 
 # Editor
 .vscode/

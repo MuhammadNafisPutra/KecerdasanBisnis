@@ -23,6 +23,7 @@ x-airflow-common: &airflow-common
     DW_PORT: 5432
     DATA_LAKE_DIR: /opt/airflow/data_lake
     SOURCE_DIR: /opt/airflow/data/source
+    BACKUP_DIR: /opt/airflow/backups
   volumes:
     - ./dags:/opt/airflow/dags
     - ./etl:/opt/airflow/etl
@@ -30,6 +31,7 @@ x-airflow-common: &airflow-common
     - ./data:/opt/airflow/data
     - ./data_lake:/opt/airflow/data_lake
     - ./logs:/opt/airflow/logs
+    - ./backups:/opt/airflow/backups
   user: "50000:0"
   depends_on:
     postgres:

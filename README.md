@@ -223,3 +223,32 @@ Filter: jenis kelamin, jenis latihan, kelompok usia, level pengalaman, kategori 
 docker compose up -d --build dashboard
 # buka http://localhost:8501
 ```
+
+## Backup dan Disaster Recovery
+
+DAG `fitzone_backup_daily` berjalan **setiap hari pukul 01:00 WIB**, sebelum pipeline member pukul 02:00.
+
+| Aspek | Ketentuan |
+|---|---|
+| Yang dibackup | Database DWH `fitzone_dw` (pg_dump format custom) + Data Lake raw dan model ML (tar.gz) |
+| Lokasi | `./backups/<YYYYMMDD_HHMMSS>/` berisi `fitzone_dw.dump`, `data_lake_raw.tar.gz`, `manifest.json`. Salinan kedua opsional lewat `BACKUP_OFFSITE_DIR` |
+| Frekuensi | Harian 01:00 WIB |
+| Retensi | Semua backup 7 hari terakhir + 1 backup per minggu selama 4 minggu |
+| Verifikasi | Setiap backup langsung di-restore ke database sementara `fitzone_restore_test`. Checksum sha256 dan jumlah baris setiap tabel dibandingkan dengan manifest, lalu database sementara dihapus |
+| Pencatatan | `etl_audit.backup_log`, tampil di dashboard halaman Kualitas Data & ETL |
+| Pengaman | Backup lama hanya dihapus bila uji restore backup baru LULUS |
+
+Alur `backup_database → backup_data_lake → uji_restore → hapus_backup_lama`
+
+### Prosedur pemulihan (restore)
+
+```bash
+# 1. lihat daftar backup
+docker compose exec airflow-scheduler python -m etl.backup list
+# 2. pulihkan database dan Data Lake raw dari backup yang dipilih (menimpa data, wajib --ya)
+docker compose exec airflow-scheduler python -m etl.backup restore --folder 20261114_010000 --ya
+# 3. bila ada batch setelah waktu backup, proses ulang dari raw zone (lihat batch di: run_pipeline status)
+docker compose exec airflow-scheduler python -m etl.run_pipeline replay member <batch_id>
+```
+
+Uji restore manual tanpa menyentuh data produksi: `python -m etl.backup verify`.
