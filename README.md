@@ -1,6 +1,6 @@
 # Pipeline Big Data PT FitZone Nusantara
 
-Proyek UAS Kecerdasan Bisnis / Big Data — Muhammad Nafis Putra (2410817210021).
+Proyek UAS Kecerdasan Bisnis / Big Data, Muhammad Nafis Putra (2410817210021).
 
 Pipeline end-to-end yang menggabungkan **data internal** (ekspor CSV kebiasaan latihan member)
 dan **data eksternal** (WHO Global Health Observatory API) ke dalam Data Lake dan Data Warehouse
