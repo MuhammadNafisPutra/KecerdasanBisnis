@@ -30,7 +30,7 @@ ax.set_xscale("log"); ax.set_yscale("log")
 ax.set_xlabel("Jumlah baris member (skala log)"); ax.set_ylabel("Detik (skala log)")
 for r in ok.itertuples():
     ax.annotate(f"{r.skala}\n{r.etl_sec:.1f} s", (r.baris, r.etl_sec), textcoords="offset points",
-                xytext=(0, -12), ha="center", va="top", fontsize=9, color=WARNA["etl"])
+                xytext=(0, 9), ha="center", va="bottom", fontsize=9, color=WARNA["etl"])
 ax.set_title("Waktu proses terhadap volume data", loc="left", fontweight="bold")
 ax.legend(frameon=False); ax.grid(alpha=0.3, which="major")
 fig.tight_layout(); fig.savefig(DIR / "1_waktu_vs_data.png", dpi=200); plt.close(fig)
@@ -57,13 +57,20 @@ fig.tight_layout(); fig.savefig(DIR / "2_porsi_tahap.png", dpi=200); plt.close(f
 # 3) Puncak memori
 if "peak_mem_mb" in df and df["peak_mem_mb"].notna().any():
     fig, ax = plt.subplots(figsize=(7.5, 4.5))
-    warna = ["#1f4e79" if s == "SUKSES" else "#c8553d" for s in df["status"]]
-    ax.bar(df["skala"], df["peak_mem_mb"].fillna(0), color=warna)
+    # Skala yang gagal: puncak memori tidak terukur (proses dihentikan sistem), jadi digambar
+    # setinggi batas container dengan arsiran dan label GAGAL, bukan angka palsu.
+    for i, r in enumerate(df.itertuples()):
+        if r.status == "SUKSES":
+            ax.bar(i, r.peak_mem_mb, color="#1f4e79")
+            ax.text(i, r.peak_mem_mb, f"{r.peak_mem_mb:,.0f} MB", ha="center", va="bottom", fontsize=9)
+        else:
+            ax.bar(i, BATAS_CONTAINER_MB, color="#f1d3cd", edgecolor="#c8553d", hatch="//")
+            ax.text(i, BATAS_CONTAINER_MB / 2, "GAGAL\nmemori\nhabis", ha="center", va="center",
+                    fontsize=10, color="#c8553d", fontweight="bold",
+                    bbox=dict(facecolor="white", edgecolor="none", pad=3))
+    ax.set_xticks(range(len(df)), df["skala"])
     ax.axhline(BATAS_CONTAINER_MB, color="#c8553d", ls="--", lw=1.5)
     ax.text(-0.4, BATAS_CONTAINER_MB * 1.03, f"batas container {BATAS_CONTAINER_MB} MB", color="#c8553d", fontsize=9)
-    for i, v in enumerate(df["peak_mem_mb"]):
-        if pd.notna(v):
-            ax.text(i, v, f"{v:,.0f} MB", ha="center", va="bottom", fontsize=9)
     ax.set_ylabel("Puncak memori (MB)")
     ax.set_title("Puncak memori proses pipeline", loc="left", fontweight="bold")
     fig.tight_layout(); fig.savefig(DIR / "3_memori.png", dpi=200); plt.close(fig)

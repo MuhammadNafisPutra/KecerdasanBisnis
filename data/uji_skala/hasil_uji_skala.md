@@ -1,0 +1,14 @@
+# Hasil uji skala pipeline FitZone
+
+Diuji: 2026-11-14 02:27 | database: fitzone_bench | ML_MAX_TRAIN_ROWS=50000 | ML_N_JOBS=2
+
+Data 10x/100x/1000x adalah data sintetis (salinan data asli dengan variasi kecil). Uji ini mengukur waktu dan memori; akurasi model memakai hasil data asli (1x) karena salinan menimbulkan kebocoran data latih-uji.
+
+Kolom: *_sec = detik per tahap; etl_sec = ingest+stage+transform+load; ml_n_sampel = baris yang dipakai melatih (dibatasi ML_MAX_TRAIN_ROWS); peak_mem_mb = puncak memori proses.
+
+| skala | baris | baris_dwh | status | csv_mb | parquet_mb | dwh_mb | ingest_sec | stage_sec | transform_sec | load_sec | etl_sec | baris_per_detik | ml_load_data_sec | ml_train_sec | ml_write_sec | ml_n_sampel | ml_champion | peak_mem_mb | wall_sec |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1x | 973 | 973.0 | SUKSES | 0.07 | 0.05 | 1.78 | 0.177 | 0.139 | 0.327 | 0.376 | 1.02 | 955 | 0.022 | 6.856 | 0.057 | 973.0 | random_forest | 233.6 | 10.59 |
+| 10x | 9730 | 9730.0 | SUKSES | 0.65 | 0.29 | 10.13 | 0.13 | 0.318 | 0.397 | 1.12 | 1.97 | 4952 | 0.121 | 40.481 | 0.229 | 9730.0 | random_forest | 354.6 | 47.52 |
+| 100x | 97300 | 97225.0 | SUKSES | 6.49 | 2.22 | 89.66 | 0.56 | 2.799 | 3.835 | 12.379 | 19.57 | 4971 | 2.193 | 186.58 | 1.908 | 50000.0 | random_forest | 950.7 | 219.57 |
+| 1000x | 973000 |  | GAGAL: kehabisan memori (proses dihentikan sistem) | 64.9 | 0.0 | 89.66 | 2.105 | 24.3 |  |  | 26.41 | 36849 |  |  |  |  |  | 662.4 | 33.23 |

@@ -199,7 +199,11 @@ def main(argv=None):
             (OUT_DIR / f"error_{kali}x.log").write_text(proc.stdout + proc.stderr, encoding="utf-8")
         etl = sum(hasil.get(f"{s}_sec", 0) for s in ("ingest", "stage", "transform", "load"))
         hasil["etl_sec"] = round(etl, 2)
-        hasil["baris_per_detik"] = round(len(df) / etl) if etl else None
+        gagal = proc.returncode != 0
+        # Skala yang gagal tidak punya tahap lengkap: kecepatan dan puncak memori tidak valid
+        hasil["baris_per_detik"] = None if gagal else (round(len(df) / etl) if etl else None)
+        if gagal:
+            hasil["peak_mem_mb"] = None
         baris_hasil.append(hasil)
         print("   " + ", ".join(f"{k}={v}" for k, v in hasil.items() if k.endswith(("_sec", "_mb", "status"))),
               flush=True)
