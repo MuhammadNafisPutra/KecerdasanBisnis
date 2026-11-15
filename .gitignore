@@ -24,3 +24,5 @@ backups/*
 # Editor
 .vscode/
 .idea/
+
+_to_delete/
