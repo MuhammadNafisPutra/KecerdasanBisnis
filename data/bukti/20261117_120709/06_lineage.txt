@@ -1,0 +1,14 @@
+# Data lineage dari data warehouse ke file raw
+# Diambil: 2026-11-17 12:07:11 WIB
+
+Setiap baris fakta menyimpan load_batch_id yang menunjuk ke etl_log:
+session_key member_key load_batch_id  sumber  sha256_awal
+          1          1             1 gym_csv cfa58990806e
+          2          2             1 gym_csv cfa58990806e
+          3          3             1 gym_csv cfa58990806e
+          4          4             1 gym_csv cfa58990806e
+          5          5             1 gym_csv cfa58990806e
+
+Lokasi file raw untuk batch tersebut:
+batch_id                                                       raw_path
+       1 data_lake/raw/source=gym_csv/ingest_date=2026-11-06/batch_id=1

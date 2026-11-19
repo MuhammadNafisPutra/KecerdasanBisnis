@@ -1,0 +1,12 @@
+# Eksekusi ETL per batch
+# Diambil: 2026-11-15 19:30:13 WIB
+
+Ringkasan batch ETL (etl_audit.v_ringkasan_etl):
+GAGAL dibaca: Invalid value '-' for dtype Int64
+
+Durasi per tahap (etl_audit.v_durasi_tahap):
+ batch_id       sumber ingest stage transform load    ml total memori_mb
+        7      gym_csv  0.079     -         -    -     - 0.079     241.2
+        6 ml_fat_model      -     -         -    - 5.745 5.745     223.9
+        5      gym_csv  0.040     -         -    -     - 0.040     232.1
+        4      gym_csv  0.094     -         -    -     - 0.094     232.5

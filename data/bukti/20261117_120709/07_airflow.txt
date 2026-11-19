@@ -1,0 +1,32 @@
+# Orkestrasi Apache Airflow (DAG dan riwayat run)
+# Diambil: 2026-11-17 12:07:25 WIB
+
+Daftar DAG:
+dag_id                fileloc                                    owners      is_paused
+fitzone_backup_daily  /opt/airflow/dags/fitzone_backup_daily.py  ['tim_bi']  False
+fitzone_member_daily  /opt/airflow/dags/fitzone_member_daily.py  ['tim_bi']  False
+fitzone_who_monthly   /opt/airflow/dags/fitzone_who_monthly.py   ['tim_bi']  False
+
+
+Riwayat run fitzone_member_daily:
+    jenis  status      mulai (WIB)  durasi_detik
+   manual success 2026-11-16 13:00           6.4
+   manual success 2026-11-16 09:54          13.4
+scheduled success 2026-11-17 12:00          17.8
+scheduled success 2026-11-16 09:39           7.1
+scheduled success 2026-11-15 15:01           5.8
+scheduled success 2026-11-14 08:42           4.0
+   manual success 2026-11-06 12:52           3.1
+scheduled success 2026-11-14 08:42           4.9
+scheduled success 2026-11-06 12:52          13.0
+
+Riwayat run fitzone_who_monthly:
+ jenis  status      mulai (WIB)  durasi_detik
+manual success 2026-11-06 12:54          56.4
+
+Riwayat run fitzone_backup_daily:
+    jenis  status      mulai (WIB)  durasi_detik
+scheduled success 2026-11-17 12:00          38.6
+scheduled success 2026-11-16 09:39          30.6
+scheduled success 2026-11-15 15:01          15.9
+scheduled success 2026-11-14 20:59          39.7

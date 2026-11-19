@@ -1,0 +1,37 @@
+# Orkestrasi Apache Airflow (DAG dan riwayat run)
+# Diambil: 2026-11-15 12:26:16
+
+Daftar DAG:
+dag_id               | fileloc                                   | owners | is_paused
+=====================+===========================================+========+==========
+fitzone_backup_daily | /opt/airflow/dags/fitzone_backup_daily.py | tim_bi | False    
+fitzone_member_daily | /opt/airflow/dags/fitzone_member_daily.py | tim_bi | False    
+fitzone_who_monthly  | /opt/airflow/dags/fitzone_who_monthly.py  | tim_bi | False    
+                                                                                     
+
+
+Riwayat run fitzone_member_daily:
+dag_id               | run_id                                   | state   | execution_date                   | start_date                       | end_date                        
+=====================+==========================================+=========+==================================+==================================+=================================
+fitzone_member_daily | scheduled__2026-11-13T19:00:00+00:00     | success | 2026-11-13T19:00:00+00:00        | 2026-11-15T08:01:10.824488+00:00 | 2026-11-15T08:01:16.671205+00:00
+fitzone_member_daily | scheduled__2026-11-12T19:00:00+00:00     | success | 2026-11-12T19:00:00+00:00        | 2026-11-14T01:42:36.108258+00:00 | 2026-11-14T01:42:40.059332+00:00
+fitzone_member_daily | manual__2026-11-06T05:52:29.243325+00:00 | success | 2026-11-06T05:52:29.243325+00:00 | 2026-11-06T05:52:43.634220+00:00 | 2026-11-06T05:52:46.726261+00:00
+fitzone_member_daily | scheduled__2026-11-05T19:00:00+00:00     | success | 2026-11-05T19:00:00+00:00        | 2026-11-14T01:42:30.131012+00:00 | 2026-11-14T01:42:35.047871+00:00
+fitzone_member_daily | scheduled__2026-11-04T19:00:00+00:00     | success | 2026-11-04T19:00:00+00:00        | 2026-11-06T05:52:29.567437+00:00 | 2026-11-06T05:52:42.574544+00:00
+                                                                                                                                                                                  
+
+
+Riwayat run fitzone_who_monthly:
+dag_id              | run_id                                   | state   | execution_date                   | start_date                       | end_date                        
+====================+==========================================+=========+==================================+==================================+=================================
+fitzone_who_monthly | manual__2026-11-06T05:54:20.713206+00:00 | success | 2026-11-06T05:54:20.713206+00:00 | 2026-11-06T05:54:20.911143+00:00 | 2026-11-06T05:55:17.355057+00:00
+                                                                                                                                                                                 
+
+
+Riwayat run fitzone_backup_daily:
+dag_id               | run_id                               | state   | execution_date            | start_date                       | end_date                        
+=====================+======================================+=========+===========================+==================================+=================================
+fitzone_backup_daily | scheduled__2026-11-13T18:00:00+00:00 | success | 2026-11-13T18:00:00+00:00 | 2026-11-15T08:01:10.823919+00:00 | 2026-11-15T08:01:26.745432+00:00
+fitzone_backup_daily | scheduled__2026-11-12T18:00:00+00:00 | success | 2026-11-12T18:00:00+00:00 | 2026-11-14T13:59:08.124965+00:00 | 2026-11-14T13:59:47.789660+00:00
+                                                                                                                                                                       
+

@@ -321,7 +321,7 @@ def kosong(df) -> bool:
 # ================================================================ halaman
 if halaman == "Ringkasan Eksekutif":
     hero("Ringkasan Eksekutif", "Bagaimana kondisi kebugaran member FitZone saat ini?",
-         "Data simulasi dari Kaggle (bukan data member asli). Arahkan kursor ke grafik untuk melihat angka "
+         "Arahkan kursor ke grafik untuk melihat angka "
          "detail.")
     info_filter()
     if not kosong(r):

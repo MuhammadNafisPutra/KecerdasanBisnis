@@ -1,0 +1,195 @@
+# Training dan evaluasi model
+# Diambil: 2026-11-15 12:26:16
+
+Evaluasi model (dw.mart_ml_evaluasi):
+ batch_id  data_batch_id        model_name model_role  is_champion  n_rows  n_train  n_test  n_features  cv_folds cv_mae_mean cv_mae_std cv_r2_mean test_mae test_rmse test_r2 mae_lebih_baik_pct train_sec predict_ms_per_1k                                                                                                                                                                                                                                                                                                                                                                                                                    feature_importance                       trained_at
+        6              1     random_forest   kandidat         True     973      778     195          16         5      2.3995     0.0455     0.7917   2.3778    2.7835  0.8045               25.9     0.439           408.298     {'age': 0.0181, 'avg_bpm': 0.0204, 'max_bpm': 0.0214, 'height_m': 0.0178, 'weight_kg': 0.0313, 'gender_Male': 0.144, 'resting_bpm': 0.0172, 'calories_burned': 0.0162, 'experience_level': 0.2566, 'workout_type_HIIT': 0.0026, 'workout_type_Yoga': 0.002, 'water_intake_liters': 0.0239, 'workout_type_Cardio': 0.0023, 'workout_type_Strength': 0.0024, 'session_duration_hours': 0.42, 'workout_frequency_days_week': 0.0038} 2026-11-14 08:45:36.515479+07:00
+        6              1 gradient_boosting   kandidat        False     973      778     195          16         5      2.4547     0.0773     0.7784   2.4536    2.9153  0.7856               23.6     0.403            20.247  {'age': 0.0099, 'avg_bpm': 0.0116, 'max_bpm': 0.0149, 'height_m': 0.0067, 'weight_kg': 0.0234, 'gender_Male': 0.161, 'resting_bpm': 0.0067, 'calories_burned': 0.0163, 'experience_level': 0.2411, 'workout_type_HIIT': 0.0009, 'workout_type_Yoga': 0.0012, 'water_intake_liters': 0.0182, 'workout_type_Cardio': 0.0005, 'workout_type_Strength': 0.0012, 'session_duration_hours': 0.4844, 'workout_frequency_days_week': 0.0019} 2026-11-14 08:45:36.515479+07:00
+        6              1 linear_regression   baseline        False     973      778     195          16         5      3.1824     0.1491     0.6191   3.2105    3.8557  0.6249                0.0     0.006            19.311 {'age': 0.0126, 'avg_bpm': 0.0405, 'max_bpm': 0.0006, 'height_m': 0.0004, 'weight_kg': 0.0103, 'gender_Male': 0.2451, 'resting_bpm': 0.0066, 'calories_burned': 0.1474, 'experience_level': 0.2563, 'workout_type_HIIT': 0.0327, 'workout_type_Yoga': 0.0221, 'water_intake_liters': 0.1543, 'workout_type_Cardio': 0.0141, 'workout_type_Strength': 0.0407, 'session_duration_hours': 0.0157, 'workout_frequency_days_week': 0.0006} 2026-11-14 08:45:36.515479+07:00
+
+metrics.json terbaru (/opt/airflow/data_lake/models/fat_percentage/batch_id=6/metrics.json):
+{
+  "champion": "random_forest",
+  "features": [
+    "age",
+    "height_m",
+    "weight_kg",
+    "experience_level",
+    "session_duration_hours",
+    "workout_frequency_days_week",
+    "calories_burned",
+    "water_intake_liters",
+    "max_bpm",
+    "avg_bpm",
+    "resting_bpm",
+    "gender",
+    "workout_type"
+  ],
+  "target": "fat_percentage",
+  "results": [
+    {
+      "model_name": "linear_regression",
+      "model_role": "baseline",
+      "n_rows": 973,
+      "n_train": 778,
+      "n_test": 195,
+      "n_features": 16,
+      "cv_folds": 5,
+      "cv_mae_mean": 3.182357225292324,
+      "cv_mae_std": 0.14909468953041866,
+      "cv_r2_mean": 0.6191197350490485,
+      "test_mae": 3.2105321287846302,
+      "test_rmse": 3.8557182016179823,
+      "test_r2": 0.6248959060657961,
+      "train_sec": 0.005583874999956606,
+      "predict_ms_per_1k": 19.310794871858096,
+      "params": {
+        "copy_X": true,
+        "fit_intercept": true,
+        "n_jobs": null,
+        "positive": false,
+        "tol": 1e-06
+      },
+      "feature_importance": {
+        "experience_level": 0.2563,
+        "gender_Male": 0.2451,
+        "water_intake_liters": 0.1543,
+        "calories_burned": 0.1474,
+        "workout_type_Strength": 0.0407,
+        "avg_bpm": 0.0405,
+        "workout_type_HIIT": 0.0327,
+        "workout_type_Yoga": 0.0221,
+        "session_duration_hours": 0.0157,
+        "workout_type_Cardio": 0.0141,
+        "age": 0.0126,
+        "weight_kg": 0.0103,
+        "resting_bpm": 0.0066,
+        "workout_frequency_days_week": 0.0006,
+        "max_bpm": 0.0006,
+        "height_m": 0.0004
+      },
+      "is_champion": false
+    },
+    {
+      "model_name": "random_forest",
+      "model_role": "kandidat",
+      "n_rows": 973,
+      "n_train": 778,
+      "n_test": 195,
+      "n_features": 16,
+      "cv_folds": 5,
+      "cv_mae_mean": 2.399456673260126,
+      "cv_mae_std": 0.045515827961994756,
+      "cv_r2_mean": 0.7917286544318946,
+      "test_mae": 2.377820219903552,
+      "test_rmse": 2.783464820161443,
+      "test_r2": 0.8045153296503069,
+      "train_sec": 0.4390088690000198,
+      "predict_ms_per_1k": 408.29821538473436,
+      "params": {
+        "bootstrap": true,
+        "ccp_alpha": 0.0,
+        "criterion": "squared_error",
+        "max_depth": null,
+        "max_features": 1.0,
+        "max_leaf_nodes": null,
+        "max_samples": null,
+        "min_impurity_decrease": 0.0,
+        "min_samples_leaf": 2,
+        "min_samples_split": 2,
+        "min_weight_fraction_leaf": 0.0,
+        "monotonic_cst": null,
+        "n_estimators": 300,
+        "n_jobs": 2,
+        "oob_score": false,
+        "random_state": 42,
+        "verbose": 0,
+        "warm_start": false
+      },
+      "feature_importance": {
+        "session_duration_hours": 0.42,
+        "experience_level": 0.2566,
+        "gender_Male": 0.144,
+        "weight_kg": 0.0313,
+        "water_intake_liters": 0.0239,
+        "max_bpm": 0.0214,
+        "avg_bpm": 0.0204,
+        "age": 0.0181,
+        "height_m": 0.0178,
+        "resting_bpm": 0.0172,
+        "calories_burned": 0.0162,
+        "workout_frequency_days_week": 0.0038,
+        "workout_type_HIIT": 0.0026,
+        "workout_type_Strength": 0.0024,
+        "workout_type_Cardio": 0.0023,
+        "workout_type_Yoga": 0.002
+      },
+      "is_champion": true
+    },
+    {
+      "model_name": "gradient_boosting",
+      "model_role": "kandidat",
+      "n_rows": 973,
+      "n_train": 778,
+      "n_test": 195,
+      "n_features": 16,
+      "cv_folds": 5,
+      "cv_mae_mean": 2.4547127187772806,
+      "cv_mae_std": 0.07730957188143636,
+      "cv_r2_mean": 0.778372714794666,
+      "test_mae": 2.4535690359059035,
+      "test_rmse": 2.9153087937719167,
+      "test_r2": 0.7855577486045078,
+      "train_sec": 0.40258347500002856,
+      "predict_ms_per_1k": 20.246646153783587,
+      "params": {
+        "alpha": 0.9,
+        "ccp_alpha": 0.0,
+        "criterion": "deprecated",
+        "init": null,
+        "learning_rate": 0.05,
+        "loss": "squared_error",
+        "max_depth": 3,
+        "max_features": null,
+        "max_leaf_nodes": null,
+        "min_impurity_decrease": 0.0,
+        "min_samples_leaf": 1,
+        "min_samples_split": 2,
+        "min_weight_fraction_leaf": 0.0,
+        "n_estimators": 300,
+        "n_iter_no_change": null,
+        "random_state": 42,
+        "subsample": 1.0,
+        "tol": 0.0001,
+        "validation_fraction": 0.1,
+        "verbose": 0,
+        "warm_start": false
+      },
+      "feature_importance": {
+        "session_duration_hours": 0.4844,
+        "experience_level": 0.2411,
+        "gender_Male": 0.161,
+        "weight_kg": 0.0234,
+        "water_intake_liters": 0.0182,
+        "calories_burned": 0.0163,
+        "max_bpm": 0.0149,
+        "avg_bpm": 0.0116,
+        "age": 0.0099,
+        "resting_bpm": 0.0067,
+        "height_m": 0.0067,
+        "workout_frequency_days_week": 0.0019,
+        "workout_type_Strength": 0.0012,
+        "workout_type_Yoga": 0.0012,
+        "workout_type_HIIT": 0.0009,
+        "workout_type_Cardio": 0.0005
+      },
+      "is_champion": false
+    }
+  ]
+}
+
+Jumlah prediksi per status (data uji):
+   status_prediksi  count
+ Di atas perkiraan     36
+Di bawah perkiraan     37
+  Sesuai perkiraan    122

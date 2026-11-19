@@ -1,13 +1,3 @@
-"""Pipeline data WHO GHO: raw zone (JSON) -> staging -> transform (curated) -> upsert ke DWH.
-
-Aturan transform WHO (lanjutan aturan 13-16 dokumen desain):
- 13 hanya negara (SpatialDimType = COUNTRY) dan gender SEX_MLE/SEX_FMLE -> Male/Female
-    (SEX_BTSX = gabungan kedua gender dan data kawasan/global dibuang saat staging)
- 14 pilih dan ganti nama kolom: NumericValue->value, Low->low, High->high, TimeDim->year
-    hanya kelompok umur dewasa (Dim2 kosong atau AGEGROUP_YEARS18-PLUS)
- 15 validasi tipe dan rentang: persen 0-100, rata-rata BMI 10-60; kunci ganda ditolak
- 16 kolom audit
-"""
 import json
 import logging
 
@@ -83,8 +73,6 @@ def transform_who_df(stg: pd.DataFrame, units: dict) -> tuple[pd.DataFrame, list
     df["row_no"] = df.index + 1
     rows_read = len(df)
 
-    # Aturan 14: hanya kelompok umur dewasa. Bila suatu indikator hanya punya SATU kode umur
-    # (kode berbeda dari dugaan), kode itu diterima agar data tidak terbuang diam-diam.
     dim2 = df["dim2"].fillna("")
     allowed = dim2.isin(WHO_ALLOWED_DIM2)
     single_code = dim2.groupby(df["indicator_code"]).transform("nunique") == 1
@@ -106,8 +94,6 @@ def transform_who_df(stg: pd.DataFrame, units: dict) -> tuple[pd.DataFrame, list
     flag(df["year"].isna() | (df["year"] % 1 != 0), "tahun tidak valid")
     flag(df["value"].isna(), "NumericValue kosong atau bukan angka")
     flag(df["year"].notna() & ((df["year"] < 1950) | (df["year"] > 2100)), "tahun di luar rentang 1950-2100")
-
-    # Aturan 15: rentang menurut satuan indikator
     unit = df["indicator_code"].map(units).fillna("")
     pct = unit.eq("%")
     bmi = unit.eq("kg/m2")
@@ -167,7 +153,6 @@ def transform_who(batch_id: int) -> dict:
             raise QualityGateError(f"{stats['rows_rejected']} dari {stats['rows_read']} baris WHO ditolak "
                                    f"({stats['reject_ratio']:.1%}) melebihi batas {config.REJECT_THRESHOLD:.0%}")
 
-        # Tabel negara: kode dari data + nama dari dimensi COUNTRY (bila tersedia)
         ctry = (clean[["country_code", "who_region_code", "who_region_name"]]
                 .drop_duplicates("country_code")
                 .merge(countries.drop_duplicates("country_code"), on="country_code", how="left"))

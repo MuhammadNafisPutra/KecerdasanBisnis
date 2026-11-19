@@ -2,7 +2,7 @@
 import os
 from pathlib import Path
 
-try:  # saat dijalankan di VS Code, baca .env otomatis; di Docker nilai sudah dari env_file
+try:  
     from dotenv import load_dotenv
 
     load_dotenv(Path(__file__).resolve().parents[1] / ".env")

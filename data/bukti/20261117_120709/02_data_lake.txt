@@ -1,0 +1,89 @@
+# Struktur Data Lake (raw, curated, models)
+# Diambil: 2026-11-17 12:07:10 WIB
+
+data_lake/raw  total 72.74 MB
+.gitkeep  (0.0 KB)
+source=gym_csv/
+  ingest_date=2026-11-06/
+    batch_id=1/
+      gym_members_exercise_tracking.csv  (63.6 KB)
+      manifest.json  (0.6 KB)
+source=who_gho_api/
+  ingest_date=2026-11-06/
+    batch_id=3/
+      DIM_COUNTRY.json  (30.3 KB)
+      NCD_BMI_25A.json  (17,092.8 KB)
+      NCD_BMI_30A.json  (17,047.8 KB)
+      NCD_BMI_MEAN.json  (15,542.9 KB)
+      NCD_PAA.json  (24,708.4 KB)
+      manifest.json  (0.5 KB)
+
+data_lake/curated  total 1.57 MB
+.gitkeep  (0.0 KB)
+member_clean/
+  batch_id=1/
+    data.parquet  (51.7 KB)
+who_clean/
+  batch_id=3/
+    data.parquet  (1,554.0 KB)
+who_country/
+  batch_id=3/
+    data.parquet  (7.0 KB)
+
+data_lake/models  total 8.87 MB
+.gitkeep  (0.0 KB)
+fat_percentage/
+  batch_id=6/
+    metrics.json  (5.0 KB)
+    model.joblib  (9,081.5 KB)
+
+Contoh manifest (data_lake/raw/source=who_gho_api/ingest_date=2026-11-06/batch_id=3/manifest.json):
+{
+  "written_at": "2026-11-06T05:54:53.505030+00:00",
+  "source": "who_gho_api",
+  "batch_id": 3,
+  "base_url": "https://ghoapi.azureedge.net/api",
+  "indicators": [
+    "NCD_BMI_30A",
+    "NCD_BMI_25A",
+    "NCD_BMI_MEAN",
+    "NCD_PAA"
+  ],
+  "countries": "ALL",
+  "records_per_indicator": {
+    "NCD_BMI_30A": 28350,
+    "NCD_BMI_25A": 28350,
+    "NCD_BMI_MEAN": 25823,
+    "NCD_PAA": 41262
+  },
+  "sha256_combined": "370dca60c835f65d9ba30f68bab7d81d42f46f20d69b8e5055f11f3c0be8e147"
+}
+
+Contoh 1 record JSON WHO (NCD_PAA.json):
+{
+  "Id": 3387938,
+  "IndicatorCode": "NCD_PAA",
+  "SpatialDimType": "COUNTRY",
+  "SpatialDim": "CUB",
+  "ParentLocationCode": "AMR",
+  "TimeDimType": "YEAR",
+  "ParentLocation": "Americas",
+  "Dim1Type": "SEX",
+  "Dim1": "SEX_BTSX",
+  "TimeDim": 2002,
+  "Dim2Type": "AGEGROUP",
+  "Dim2": "AGEGROUP_YEARS18-PLUS",
+  "Dim3Type": null,
+  "Dim3": null,
+  "DataSourceDimType": null,
+  "DataSourceDim": null,
+  "Value": "35.2 [22.8-48.6]",
+  "NumericValue": 35.24271,
+  "Low": 22.787642,
+  "High": 48.556175,
+  "Comments": null,
+  "Date": "2024-06-21T13:42:48.827+02:00",
+  "TimeDimensionValue": "2002",
+  "TimeDimensionBegin": "2002-01-01T00:00:00+01:00",
+  "TimeDimensionEnd": "2002-12-31T00:00:00+01:00"
+}

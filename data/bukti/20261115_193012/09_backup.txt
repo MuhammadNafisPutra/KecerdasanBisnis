@@ -1,0 +1,28 @@
+# Backup harian dan uji restore
+# Diambil: 2026-11-15 19:30:34 WIB
+
+Riwayat backup (etl_audit.backup_log):
+         folder            mulai  status db_dump_mb raw_archive_mb  tabel  baris uji_restore restore_sec
+20261115_080112 2026-11-15 15:01 SUCCESS       3.56           7.77     18 154559       LULUS        3.00
+20261114_135918 2026-11-14 20:59 SUCCESS       3.56           7.77     18 154559       LULUS        3.15
+20261114_135700 2026-11-14 20:57 SUCCESS       3.56           7.77     18 154559       LULUS        3.75
+20261114_135520 2026-11-14 20:55  FAILED       3.57           7.77     18 154559       GAGAL        1.78
+
+backups  total 43.25 MB
+.gitkeep  (0.0 KB)
+20261114_135520/
+  data_lake_raw.tar.gz  (7,590.0 KB)
+  fitzone_dw.dump  (3,481.6 KB)
+  manifest.json  (1.0 KB)
+20261114_135700/
+  data_lake_raw.tar.gz  (7,590.0 KB)
+  fitzone_dw.dump  (3,480.8 KB)
+  manifest.json  (1.0 KB)
+20261114_135918/
+  data_lake_raw.tar.gz  (7,590.0 KB)
+  fitzone_dw.dump  (3,480.8 KB)
+  manifest.json  (1.0 KB)
+20261115_080112/
+  data_lake_raw.tar.gz  (7,590.0 KB)
+  fitzone_dw.dump  (3,480.9 KB)
+  manifest.json  (1.0 KB)

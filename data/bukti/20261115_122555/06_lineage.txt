@@ -1,0 +1,10 @@
+# Data lineage dari data warehouse ke file raw
+# Diambil: 2026-11-15 12:25:56
+
+Setiap baris fakta menyimpan load_batch_id yang menunjuk ke etl_log:
+ session_key  member_key  load_batch_id source_name  status                                                                    raw_path                                                  source_checksum
+           1           1              1     gym_csv SUCCESS /opt/airflow/data_lake/raw/source=gym_csv/ingest_date=2026-11-06/batch_id=1 cfa58990806ea6e1594fb1977d875a0158038e6d492fb95ec9107d29eb632307
+           2           2              1     gym_csv SUCCESS /opt/airflow/data_lake/raw/source=gym_csv/ingest_date=2026-11-06/batch_id=1 cfa58990806ea6e1594fb1977d875a0158038e6d492fb95ec9107d29eb632307
+           3           3              1     gym_csv SUCCESS /opt/airflow/data_lake/raw/source=gym_csv/ingest_date=2026-11-06/batch_id=1 cfa58990806ea6e1594fb1977d875a0158038e6d492fb95ec9107d29eb632307
+           4           4              1     gym_csv SUCCESS /opt/airflow/data_lake/raw/source=gym_csv/ingest_date=2026-11-06/batch_id=1 cfa58990806ea6e1594fb1977d875a0158038e6d492fb95ec9107d29eb632307
+           5           5              1     gym_csv SUCCESS /opt/airflow/data_lake/raw/source=gym_csv/ingest_date=2026-11-06/batch_id=1 cfa58990806ea6e1594fb1977d875a0158038e6d492fb95ec9107d29eb632307

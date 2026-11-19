@@ -1,0 +1,27 @@
+# Data quality gate dan validasi
+# Diambil: 2026-11-17 12:07:10 WIB
+
+Baris yang ditolak quality gate (etl_audit.etl_reject), per sumber:
+source_name jumlah
+who_gho_api    336
+
+Contoh baris ditolak:
+reject_id batch_id source_name source_row_no                        reject_reason
+      336        3 who_gho_api         52014 NumericValue kosong atau bukan angka
+      335        3 who_gho_api         52011 NumericValue kosong atau bukan angka
+      334        3 who_gho_api         51936 NumericValue kosong atau bukan angka
+      333        3 who_gho_api         51933 NumericValue kosong atau bukan angka
+      332        3 who_gho_api         51905 NumericValue kosong atau bukan angka
+      331        3 who_gho_api         51875 NumericValue kosong atau bukan angka
+      330        3 who_gho_api         51811 NumericValue kosong atau bukan angka
+      329        3 who_gho_api         51806 NumericValue kosong atau bukan angka
+      328        3 who_gho_api         51725 NumericValue kosong atau bukan angka
+      327        3 who_gho_api         51693 NumericValue kosong atau bukan angka
+
+Anomali detak jantung yang ditandai (Avg_BPM > Max_BPM), tetap dimuat:
+baris_anomali
+           23
+
+Rekonsiliasi jumlah baris sumber vs data warehouse:
+fact_workout_session fact_body_measurement dim_member
+                 973                   973        973

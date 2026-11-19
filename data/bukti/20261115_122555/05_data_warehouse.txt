@@ -1,0 +1,29 @@
+# Data warehouse, data mart, dan staging
+# Diambil: 2026-11-15 12:25:56
+
+Jumlah baris setiap tabel dan view:
+table_schema              table_name        table_type  jumlah_baris
+          dw        dim_bmi_category        BASE TABLE             4
+          dw             dim_country        BASE TABLE           201
+          dw    dim_experience_level        BASE TABLE             3
+          dw              dim_gender        BASE TABLE             2
+          dw           dim_indicator        BASE TABLE             4
+          dw              dim_member        BASE TABLE           973
+          dw        dim_workout_type        BASE TABLE             4
+          dw   fact_body_measurement        BASE TABLE           973
+          dw      fact_who_benchmark        BASE TABLE         60754
+          dw    fact_workout_session        BASE TABLE           973
+          dw      mart_benchmark_who              VIEW             8
+          dw        mart_ml_evaluasi              VIEW             3
+          dw  mart_ml_prediksi_lemak              VIEW           973
+          dw mart_who_country_latest              VIEW          1568
+          dw            ml_model_run        BASE TABLE             3
+          dw           ml_prediction        BASE TABLE           973
+   etl_audit              backup_log        BASE TABLE             4
+   etl_audit                 etl_log        BASE TABLE             7
+   etl_audit              etl_reject        BASE TABLE           336
+   etl_audit           etl_stage_log        BASE TABLE             6
+   etl_audit          v_durasi_tahap              VIEW             4
+   etl_audit         v_ringkasan_etl              VIEW             7
+          dw     mart_retensi_pemula MATERIALIZED VIEW           973
+          dw  mart_program_pemasaran MATERIALIZED VIEW           973
